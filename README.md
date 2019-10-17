@@ -13,7 +13,8 @@ you are going to have to update the main.go file, and run the program with go ru
 if you want to add custom phrases looking into main.go file, yo
 
 # usage
-
+You need to be in the same directory as the csv file for this to work correctly
+So cd into this git repo, download it, and then run the command
 ```
 ./main [google username] [google password] [first last name] [address]
 
