@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 var intro []string
 var info []string
 var outro []string
-
+var auth smtp.Auth
 var wg = sync.WaitGroup{}
 
 func init() {
@@ -53,6 +54,7 @@ func main() {
 		log.Fatal("USAGE [google username] [google password] [first last name] [address]")
 	}
 	username, password, name, address = os.Args[1], os.Args[2], os.Args[3], os.Args[4]
+	auth = smtp.PlainAuth("", username, password, "smtp.gmail.com")
 
 	file, err := os.Open("college_emails_names.csv")
 	if err != nil {
@@ -70,18 +72,15 @@ func main() {
 		email := line[1]
 		fmt.Println(collegeName)
 
-		wg.Add(1)
-		go sendMail(name, email, collegeName, address)
+		sendMail(name, email, collegeName, address)
 
 	}
 
-	wg.Wait()
 	log.Println("finished sending all emails")
 }
 
 // Email is the your email!
 func sendMail(name, email, college, address string) {
-	auth := smtp.PlainAuth("", username, password, "smtp.gmail.com")
 	to := email
 	msg := "From: " + email + "\n" +
 		"To: " + to + "\n" +
@@ -90,12 +89,12 @@ func sendMail(name, email, college, address string) {
 		"My address is " + "\n" + address + "\n\n" +
 
 		"Thank you" + "\n" + name + "\n"
+	time.Sleep(1 * time.Second)
 	err := smtp.SendMail("smtp.gmail.com:587", auth, username, []string{to}, []byte(msg))
 	if err != nil {
-		log.Printf("failed %v", err)
+		log.Fatalf("failed %v", err)
 	}
 
-	wg.Done()
 }
 
 // Function for testing the email responses
@@ -109,7 +108,9 @@ func testMail(name, email, college, address string) {
 
 		"Thank you" + "\n" + name + "\n"
 
+	err := smtp.SendMail("smtp.gmail.com:587", auth, username, []string{to}, []byte(msg))
+	fmt.Println(err)
+
 	fmt.Println(msg)
-	wg.Done()
 
 }
